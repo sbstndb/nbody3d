@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <immintrin.h>
 
 //
 typedef float              f32;
@@ -46,6 +47,8 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	const f32 softening = 1e-20;
 
 	//
+	
+
 	for (u64 i = 0; i < n; i++)
 	{
 	//
