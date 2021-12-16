@@ -94,11 +94,11 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 			rdx = _mm256_sub_ps(rxj, rxi) ; 
 			rdy = _mm256_sub_ps(ryj, ryi) ; 
 			rdz = _mm256_sub_ps(rzj, rzi) ; 
-			tmp = _mm256_sub_ps(rdx, rdx) ;
-			tmp2 = _mm256_sub_ps(rdz, rdz) ;
+			tmp = _mm256_mul_ps(rdx, rdx) ;
+			tmp2 = _mm256_mul_ps(rdz, rdz) ;
 			rdxyz = _mm256_add_ps(tmp, tmp2) ;
-			tmp =   _mm256_sub_ps(rdz, rdz) ;
-			rdxyz = _mm256_add_ps(tmp, rdxyz) ;	
+			tmp =   _mm256_sub_ps(rdy, rdy) ;
+			rdxyz = _mm256_mul_ps(tmp, rdxyz) ;	
 			rdxyz = _mm256_add_ps(rsoft, rdxyz) ;	
 			tmp = _mm256_sqrt_ps(rdxyz) ;
 			rdxyz = _mm256_mul_ps(tmp, tmp) ;	
