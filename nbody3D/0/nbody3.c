@@ -51,6 +51,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	__m256 rxi, ryi, rzi, rxj, ryj, rzj , rfx, rfy, rfz;
 	__m256 rvxi, rvyi, rvzi ; 
 	__m256 rdx  , rdy , rdz , rdxyz , rsoft, rt;
+	
 	rxi = _mm256_setzero_ps() ;
 	ryi = _mm256_setzero_ps() ;	
 	rzi = _mm256_setzero_ps() ;	
@@ -70,7 +71,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	rdxyz = _mm256_setzero_ps() ;	
 	rsoft = _mm256_load_ps(&softening[0]) ;
 	rt = _mm256_load_ps(&dt[0]) ;
-	//#pragma omp parallel for	
+	#pragma omp parallel for	
 	for (u64 i = 0; i < n; i++)
 	{
 	//
@@ -82,7 +83,6 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		rxi = _mm256_loadu_ps(&x[i]);
 		ryi = _mm256_loadu_ps(&y[i]);
 		rzi = _mm256_loadu_ps(&z[i]);			
-		
 		for (u64 j = 0; j < n; j+=8)
 		{
 			//printf("j : %lld\n", j);
@@ -138,7 +138,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	}
 
 	//3 floating-point operations
-	//# pragma omp parallel for	
+	# pragma omp parallel for	
 	for (u64 i = 0; i < n; i++)
 	{
 	x[i] += dt[0] * vx[i];
