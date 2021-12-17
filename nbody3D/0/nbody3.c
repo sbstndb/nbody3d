@@ -50,7 +50,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	//
 	__m256 rxi, ryi, rzi, rxj, ryj, rzj , rfx, rfy, rfz;
 	__m256 rvxi, rvyi, rvzi ; 
-	__m256 rdx  , rdy , rdz , rdxyz , tmp, tmp2, rsoft, rt;
+	__m256 rdx  , rdy , rdz , rdxyz , rsoft, rt;
 	rxi = _mm256_setzero_ps() ;
 	ryi = _mm256_setzero_ps() ;	
 	rzi = _mm256_setzero_ps() ;	
@@ -68,10 +68,9 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	rzj = _mm256_setzero_ps() ;	
 	rdz = _mm256_setzero_ps() ;	
 	rdxyz = _mm256_setzero_ps() ;	
-	tmp = _mm256_setzero_ps() ;		
-	tmp2 = _mm256_setzero_ps() ;
 	rsoft = _mm256_load_ps(&softening[0]) ;
-	rt = _mm256_load_ps(&dt[0]) ;	
+	rt = _mm256_load_ps(&dt[0]) ;
+	//#pragma omp parallel for	
 	for (u64 i = 0; i < n; i++)
 	{
 	//
@@ -94,19 +93,26 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 			rdx = _mm256_sub_ps(rxj, rxi) ; 
 			rdy = _mm256_sub_ps(ryj, ryi) ; 
 			rdz = _mm256_sub_ps(rzj, rzi) ; 
-			tmp = _mm256_mul_ps(rdx, rdx) ;
-			tmp2 = _mm256_mul_ps(rdz, rdz) ;
-			rdxyz = _mm256_add_ps(tmp, tmp2) ;
-			tmp =   _mm256_sub_ps(rdy, rdy) ;
-			rdxyz = _mm256_mul_ps(tmp, rdxyz) ;	
+			rxj = _mm256_mul_ps(rdx, rdx) ;
+			rzj = _mm256_mul_ps(rdz, rdz) ;
+			rdxyz = _mm256_add_ps(rxj, ryj) ;
+			ryj =   _mm256_mul_ps(rdy, rdy) ;
+			rdxyz = _mm256_mul_ps(ryj, rdxyz) ;	
 			rdxyz = _mm256_add_ps(rsoft, rdxyz) ;	
-			tmp = _mm256_sqrt_ps(rdxyz) ;
-			rdxyz = _mm256_mul_ps(tmp, tmp) ;	
-			rdxyz = _mm256_mul_ps(rdxyz, tmp) ;	
+			//rxj = _mm256_sqrt_ps(rdxyz) ;
+			//rdxyz = _mm256_mul_ps(rxj, rxj) ;	
+			//rdxyz = _mm256_mul_ps(rdxyz, rxj) ;	
 			
-			rdx = _mm256_div_ps(rdx, rdxyz) ; 			
-			rdy = _mm256_div_ps(rdy, rdxyz) ; 
-			rdz = _mm256_div_ps(rdz, rdxyz) ; 			
+			//rdx = _mm256_div_ps(rdx, rdxyz) ; 			
+			//rdy = _mm256_div_ps(rdy, rdxyz) ; 
+			//rdz = _mm256_div_ps(rdz, rdxyz) ; 			
+			
+			rxj = _mm256_rsqrt_ps(rdxyz);
+			rdxyz = _mm256_mul_ps(rxj, rxj) ;	
+			rdxyz = _mm256_mul_ps(rdxyz, rxj) ;				
+			rdx = _mm256_mul_ps(rdx, rdxyz) ; 			
+			rdy = _mm256_mul_ps(rdy, rdxyz) ; 
+			rdz = _mm256_mul_ps(rdz, rdxyz) ; 			
 			
 			rfx = _mm256_add_ps(rfx, rdx) ; 	
 			rfy = _mm256_add_ps(rfy, rdy) ; 	
@@ -132,6 +138,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	}
 
 	//3 floating-point operations
+	//# pragma omp parallel for	
 	for (u64 i = 0; i < n; i++)
 	{
 	x[i] += dt[0] * vx[i];
@@ -156,12 +163,12 @@ int main(int argc, char **argv)
 
 	//
 	//particle_t *p = malloc(sizeof(particle_t) * n);
-	float *x = aligned_alloc(64, sizeof(float) * n) ; 
-	float *y = aligned_alloc(64, sizeof(float) * n) ; 	
-	float *z = aligned_alloc(64, sizeof(float) * n) ; 	
-	float *vx = aligned_alloc(64, sizeof(float) * n) ; 	
-	float *vy = aligned_alloc(64, sizeof(float) * n) ; 	
-	float *vz = aligned_alloc(64, sizeof(float) * n) ; 	
+	float *x = aligned_alloc(64, sizeof(float) * (n+64)) ; 
+	float *y = aligned_alloc(64, sizeof(float) * (n+64)) ; 	
+	float *z = aligned_alloc(64, sizeof(float) * (n+64)) ; 	
+	float *vx = aligned_alloc(64, sizeof(float) * (n+64)) ; 	
+	float *vy = aligned_alloc(64, sizeof(float) * (n+64)) ; 	
+	float *vz = aligned_alloc(64, sizeof(float) * (n+64)) ; 	
 	float *softening = aligned_alloc(64, sizeof(float) * 64) ; 
 	float *dt = aligned_alloc(64, sizeof(float) * 64) ; 	
 	//
@@ -223,6 +230,8 @@ int main(int argc, char **argv)
 	free(vx);
 	free(vy);
 	free(vz);
+	free(softening);
+	free(dt);
 
 	//
 	return 0;
