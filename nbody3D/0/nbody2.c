@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <immintrin.h>
 
+#define SAVE
+
+
 //
 typedef float              f32;
 typedef double             f64;
@@ -65,11 +68,11 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		{
 		  //Newton's law
 		  const f32 dx = x[j] - x[i]; //1
-		  const f32 dx2 = x[j+1] - x[i+1]; //1
+		  const f32 dx2 = x[j+1] - x[i]; //1
 		  const f32 dy = y[j] - y[i]; //2
-		  const f32 dy2 = y[j+1] - y[i+1]; //2
+		  const f32 dy2 = y[j+1] - y[i]; //2
 		  const f32 dz = z[j] - z[i]; //3
-		  const f32 dz2 = z[j+1] - z[i+1]; //3
+		  const f32 dz2 = z[j+1] - z[i]; //3
 		  const f32 d_2 = (dx * dx) + (dy * dy) + (dz * dz) + softening; //9
 		  const f32 d_22 = (dx2 * dx2) + (dy2 * dy2) + (dz2 * dz2) + softening; //9
 		  const f32 d_3_over_2 = pow(d_2, 3.0 / 2.0); //11
@@ -91,9 +94,9 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		vy[i] += dt * fy; //21
 		vz[i] += dt * fz; //23
 	
-		vx[i+1] += dt * fx2; //19
-		vy[i+1] += dt * fy2; //21
-		vz[i+1] += dt * fz2; //23
+		vx[i] += dt * fx2; //19
+		vy[i] += dt * fy2; //21
+		vz[i] += dt * fz2; //23
 	}
 
 	//3 floating-point operations
@@ -112,6 +115,18 @@ int main(int argc, char **argv)
 	const u64 n = (argc > 1) ? atoll(argv[1]) : 16384;
 	const u64 steps= 10;
 	const f32 dt = 0.01;
+
+	// declaration of file for saving 1st coordinates during time
+	#ifdef SAVE
+	  FILE *xfilePtr = NULL ; 
+	  xfilePtr = fopen("nbodyx2.txt", "w");
+	  FILE *vfilePtr = NULL ; 
+	  vfilePtr = fopen("nbodyv2.txt", "w");	  
+	  if (xfilePtr == NULL || vfilePtr == NULL){
+	  	printf("Issue in writing in file\n") ; 
+	  }
+	  char buf[100] ;   
+	#endif
 
 	//
 	f64 rate = 0.0, drate = 0.0;
@@ -141,6 +156,24 @@ int main(int argc, char **argv)
 	//
 	for (u64 i = 0; i < steps; i++)
 	{
+	
+	#ifdef SAVE
+		// write 1st trajectory particle for comparison 
+		fputs(gcvt(x[0], 16, buf), xfilePtr)  ; 
+		fputs(" ", xfilePtr)  ; 
+		fputs(gcvt(y[0], 16, buf), xfilePtr)  ; 
+		fputs(" ", xfilePtr)  ;       
+		fputs(gcvt(z[0], 16, buf), xfilePtr)  ; 
+		fputs(" \n", xfilePtr)  ;     
+		
+		fputs(gcvt(vx[0], 16, buf), vfilePtr)  ; 
+		fputs(" ", vfilePtr)  ; 
+		fputs(gcvt(vy[0], 16, buf), vfilePtr)  ; 
+		fputs(" ", vfilePtr)  ;       
+		fputs(gcvt(vz[0], 16, buf), vfilePtr)  ; 
+		fputs(" \n", vfilePtr)  ;  		 
+	#endif	
+	
 	//Measure
 	const f64 start = omp_get_wtime();
 
@@ -169,6 +202,8 @@ int main(int argc, char **argv)
 	(i < warmup) ? "*" : "");
 
 	fflush(stdout);
+
+	
 	}
 
 	//
@@ -187,6 +222,11 @@ int main(int argc, char **argv)
 	free(vx);
 	free(vy);
 	free(vz);
+	
+	#ifdef SAVE
+		fclose(xfilePtr);
+		fclose(vfilePtr) ;  
+	#endif	
 
 	//
 	return 0;

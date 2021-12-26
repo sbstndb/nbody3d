@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <immintrin.h>
 
+#define SAVE
+
 //
 typedef float              f32;
 typedef double             f64;
@@ -71,7 +73,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	rdxyz = _mm256_setzero_ps() ;	
 	rsoft = _mm256_load_ps(&softening[0]) ;
 	rt = _mm256_load_ps(&dt[0]) ;
-	#pragma omp parallel for	
+	//#pragma omp parallel for	
 	for (u64 i = 0; i < n; i++)
 	{
 	//
@@ -83,7 +85,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		rxi = _mm256_loadu_ps(&x[i]);
 		ryi = _mm256_loadu_ps(&y[i]);
 		rzi = _mm256_loadu_ps(&z[i]);			
-		for (u64 j = 0; j < n; j+=8)
+		for (u64 j = 0; j < n; j+=16)
 		{
 			//printf("j : %lld\n", j);
 			
@@ -133,12 +135,74 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		
 		_mm256_storeu_ps(&vx[i], rvxi) ;				
 		_mm256_storeu_ps(&vy[i], rvyi) ;	
-		_mm256_storeu_ps(&vz[i], rvzi) ;	
+		_mm256_storeu_ps(&vz[i], rvzi) ;
+		
+		
+		rfx = _mm256_setzero_ps() ;	
+		rfy = _mm256_setzero_ps() ;	
+		rfz = _mm256_setzero_ps() ;
+
+		// load i values
+		rxi = _mm256_loadu_ps(&x[i+8]);
+		ryi = _mm256_loadu_ps(&y[i+8]);
+		rzi = _mm256_loadu_ps(&z[i+8]);
+		
+		for (u64 j = 8; j < n; j+=16)
+		{
+			//printf("j : %lld\n", j);
+			
+			rxj = _mm256_load_ps(&x[j]);
+			ryj = _mm256_load_ps(&y[j]);
+			rzj = _mm256_load_ps(&z[j]);
+			rdx = _mm256_sub_ps(rxj, rxi) ; 
+			rdy = _mm256_sub_ps(ryj, ryi) ; 
+			rdz = _mm256_sub_ps(rzj, rzi) ; 
+			rxj = _mm256_mul_ps(rdx, rdx) ;
+			rzj = _mm256_mul_ps(rdz, rdz) ;
+			rdxyz = _mm256_add_ps(rxj, ryj) ;
+			ryj =   _mm256_mul_ps(rdy, rdy) ;
+			rdxyz = _mm256_mul_ps(ryj, rdxyz) ;	
+			rdxyz = _mm256_add_ps(rsoft, rdxyz) ;	
+			//rxj = _mm256_sqrt_ps(rdxyz) ;
+			//rdxyz = _mm256_mul_ps(rxj, rxj) ;	
+			//rdxyz = _mm256_mul_ps(rdxyz, rxj) ;	
+			
+			//rdx = _mm256_div_ps(rdx, rdxyz) ; 			
+			//rdy = _mm256_div_ps(rdy, rdxyz) ; 
+			//rdz = _mm256_div_ps(rdz, rdxyz) ; 			
+			
+			rxj = _mm256_rsqrt_ps(rdxyz);
+			rdxyz = _mm256_mul_ps(rxj, rxj) ;	
+			rdxyz = _mm256_mul_ps(rdxyz, rxj) ;				
+			rdx = _mm256_mul_ps(rdx, rdxyz) ; 			
+			rdy = _mm256_mul_ps(rdy, rdxyz) ; 
+			rdz = _mm256_mul_ps(rdz, rdxyz) ; 			
+			
+			rfx = _mm256_add_ps(rfx, rdx) ; 	
+			rfy = _mm256_add_ps(rfy, rdy) ; 	
+			rfz = _mm256_add_ps(rfz, rdz) ; 				
+		}
+		
+		rfx = _mm256_mul_ps(rfx, rt) ; 	
+		rfy = _mm256_mul_ps(rfy, rt) ; 	
+		rfz = _mm256_mul_ps(rfz, rt) ; 		
+		
+		rvxi = _mm256_loadu_ps(&vx[i]);
+		rvyi = _mm256_loadu_ps(&vy[i]);
+		rvzi = _mm256_loadu_ps(&vz[i]);
+		
+		rvxi = _mm256_add_ps(rvxi, rfx) ; 	
+		rvyi = _mm256_add_ps(rvyi, rfy) ; 
+		rvzi = _mm256_add_ps(rvzi, rfz) ; 
+		
+		_mm256_storeu_ps(&vx[i+8], rvxi) ;				
+		_mm256_storeu_ps(&vy[i+8], rvyi) ;	
+		_mm256_storeu_ps(&vz[i+8], rvzi) ;	
 
 	}
 
 	//3 floating-point operations
-	# pragma omp parallel for	
+	//# pragma omp parallel for	
 	for (u64 i = 0; i < n; i++)
 	{
 	x[i] += dt[0] * vx[i];
@@ -155,6 +219,20 @@ int main(int argc, char **argv)
 	const u64 steps= 10;
 	const f32 dt_value = 0.01;
 	const f32 softening_value = 1e-20;
+	
+	
+	// declaration of file for saving 1st coordinates during time
+	#ifdef SAVE
+		FILE *xfilePtr = NULL ; 
+		xfilePtr = fopen("nbodyx3.txt", "w");
+		FILE *vfilePtr = NULL ; 
+		vfilePtr = fopen("nbodyv3.txt", "w");		
+		if (xfilePtr == NULL || vfilePtr == NULL){
+		printf("Issue in writing in file\n") ; 
+		}
+		char buf[100] ;   
+	#endif	
+	
 	//
 	f64 rate = 0.0, drate = 0.0;
 
@@ -184,6 +262,26 @@ int main(int argc, char **argv)
 	//
 	for (u64 i = 0; i < steps; i++)
 	{
+	
+	
+	#ifdef SAVE
+		// write 1st trajectory particle for comparison 
+		fputs(gcvt(x[0], 16, buf), xfilePtr)  ; 
+		fputs(" ", xfilePtr)  ; 
+		fputs(gcvt(y[0], 16, buf), xfilePtr)  ; 
+		fputs(" ", xfilePtr)  ;       
+		fputs(gcvt(z[0], 16, buf), xfilePtr)  ; 
+		fputs(" \n", xfilePtr)  ;         
+		
+		fputs(gcvt(vx[0], 16, buf), vfilePtr)  ; 
+		fputs(" ", vfilePtr)  ; 
+		fputs(gcvt(vy[0], 16, buf), vfilePtr)  ; 
+		fputs(" ", vfilePtr)  ;       
+		fputs(gcvt(vz[0], 16, buf), vfilePtr)  ; 
+		fputs(" \n", vfilePtr)  ;		 
+	#endif	
+		
+	
 	//Measure
 	const f64 start = omp_get_wtime();
 
@@ -232,6 +330,11 @@ int main(int argc, char **argv)
 	free(vz);
 	free(softening);
 	free(dt);
+	
+	#ifdef SAVE
+		fclose(xfilePtr); 
+		fclose(vfilePtr) ; 
+	#endif	
 
 	//
 	return 0;
