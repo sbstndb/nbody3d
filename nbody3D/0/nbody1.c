@@ -92,6 +92,19 @@ int main(int argc, char **argv)
 	const u64 steps= 10;
 	const f32 dt = 0.01;
 
+	// declaration of file for saving 1st coordinates during time
+	#ifdef SAVE
+	  FILE *xfilePtr = NULL ; 
+	  xfilePtr = fopen("nbodyx1.txt", "w");
+	  FILE *vfilePtr = NULL ; 
+	  vfilePtr = fopen("nbodyv1.txt", "w");	  
+	  if (xfilePtr == NULL || vfilePtr == NULL){
+	  	printf("Issue in writing in file\n") ; 
+	  }
+	  char buf[100] ;   
+	#endif
+
+
 	//
 	f64 rate = 0.0, drate = 0.0;
 
@@ -120,6 +133,24 @@ int main(int argc, char **argv)
 	//
 	for (u64 i = 0; i < steps; i++)
 	{
+    
+      #ifdef SAVE
+	      // write 1st trajectory particle for comparison 
+	      fputs(gcvt(p[0].x, 16, buf), xfilePtr)  ; 
+	      fputs(" ", xfilePtr)  ; 
+	      fputs(gcvt(p[0].y, 16, buf), xfilePtr)  ; 
+	      fputs(" ", xfilePtr)  ;       
+	      fputs(gcvt(p[0].z, 16, buf), xfilePtr)  ; 
+	      fputs(" \n", xfilePtr)  ;   
+	      
+	      fputs(gcvt(p[0].vx, 16, buf), vfilePtr)  ; 
+	      fputs(" ", vfilePtr)  ; 
+	      fputs(gcvt(p[0].vy, 16, buf), vfilePtr)  ; 
+	      fputs(" ", vfilePtr)  ;       
+	      fputs(gcvt(p[0].vz, 16, buf), vfilePtr)  ; 
+	      fputs(" \n", vfilePtr)  ; 	         
+      #endif  	
+	
 	//Measure
 	const f64 start = omp_get_wtime();
 
@@ -167,6 +198,10 @@ int main(int argc, char **argv)
 	free(vy);
 	free(vz);
 
+	#ifdef SAVE
+		fclose(xfilePtr); 
+		fclose(vfilePtr) ; 
+	#endif
 	//
 	return 0;
 }

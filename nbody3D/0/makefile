@@ -24,5 +24,5 @@ clean:
 	rm -Rf *~ nbody.g nbody.i nbody1.g nbody2.g nbody3.g  nbody3_clang.g *.optrpt
 	
 run:
-	./nbody.g && ./nbody2.g && ./nbody3.g
+	./nbody.g && ./nbody1.g && ./nbody2.g && ./nbody3.g
 
