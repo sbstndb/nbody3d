@@ -1,3 +1,4 @@
+
 all: nbody.g nbody1.g nbody2.g nbody3.g nbody3_clang.g #nbody.i
 
 nbody.g: nbody.c
@@ -21,4 +22,7 @@ nbody.i: nbody.c
 
 clean:
 	rm -Rf *~ nbody.g nbody.i nbody1.g nbody2.g nbody3.g  nbody3_clang.g *.optrpt
+	
+run:
+	./nbody.g && ./nbody2.g && ./nbody3.g
 
