@@ -52,6 +52,11 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 {
 	//
 	const f32 softening = 1e-20;
+	float tmp = 0.0 ; 
+	float tmp2 = 0.0 ; 
+	float tmp3 = 0.0 ; 
+	float tmp4 = 0.0 ; 
+	
 
 	//
 	
@@ -79,8 +84,13 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		  const f32 dz2 = z[j+1] - z[i]; //3
 		  const f32 d_2 = (dx * dx) + (dy * dy) + (dz * dz) + softening; //9
 		  const f32 d_22 = (dx2 * dx2) + (dy2 * dy2) + (dz2 * dz2) + softening; //9
-		  const f32 d_3_over_2 = pow(d_2, 3.0 / 2.0); //11
-		  const f32 d_3_over_22 = pow(d_22, 3.0 / 2.0); //11
+		  tmp = sqrt(d_2) ; 
+		  tmp3 = sqrt(d_22) ; 
+		  tmp2 = tmp * tmp * tmp ; 
+		  tmp4 = tmp3 * tmp3 * tmp3 ; 
+		  const f32 d_3_over_2 = 1./tmp2 ; 
+		  const f32 d_3_over_22 = 1./tmp4 ; 		  
+
 		  //Net force
 		  fx += dx / d_3_over_2; //13
 		  fy += dy / d_3_over_2; //15
