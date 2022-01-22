@@ -80,12 +80,15 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	//printf("valeur test : %f\n", x[n+8]) ; 
 	//
 	__m512 rxi, ryi, rzi, rxj, ryj, rzj , rfx, rfy, rfz;
+	__m512 rvxi, rvyi, rvzi ; 
 	__m512 rdx  , rdy , rdz , rdxyz , rsoft, rt;
 	
 	rxi = _mm512_setzero_ps() ;
 	ryi = _mm512_setzero_ps() ;	
 	rzi = _mm512_setzero_ps() ;	
-
+	rvxi = _mm512_setzero_ps() ;	
+	rvyi = _mm512_setzero_ps() ;	
+	rvzi = _mm512_setzero_ps() ;	
 	
 	rxj = _mm512_setzero_ps() ;
 	ryj = _mm512_setzero_ps() ;	
@@ -101,7 +104,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	rt = _mm512_load_ps(&dt[0]) ;	
 	for (u64 i = 1; i < n + 16; i++)
 	{
-
+	//
 
 		rfx = _mm512_setzero_ps() ;	
 		rfy = _mm512_setzero_ps() ;	
@@ -112,8 +115,9 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		rzi = _mm512_loadu_ps(&z[i]);			
 		for (u64 j = 16; j < n + 16; j+=16)
 		{
-
-						
+		//printf("j ; %lld\n", j);		
+			//printf("j : %lld\n", j);
+			
 			rxj = _mm512_load_ps(&x[j]);	
 			ryj = _mm512_load_ps(&y[j]);
 			rzj = _mm512_load_ps(&z[j]);
@@ -134,9 +138,17 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 			
 			rdxyz = _mm512_add_ps(rxj, rzj) ;
 			ryj =   _mm512_mul_ps(rdy, rdy) ;
-			rdxyz = _mm512_add_ps(rdxyz, ryj) ;				
+			rdxyz = _mm512_add_ps(rdxyz, ryj) ;			
+			//rdxyz = _mm512_mul_ps(ryj, rdxyz) ;	
 			rdxyz = _mm512_add_ps(rsoft, rdxyz) ;	
-
+			//rxj = _mm512_sqrt_ps(rdxyz) ;
+			//rdxyz = _mm512_mul_ps(rxj, rxj) ;	
+			//rdxyz = _mm512_mul_ps(rdxyz, rxj) ;	
+			
+			//rdx = _mm512_div_ps(rdx, rdxyz) ; 			
+			//rdy = _mm512_div_ps(rdy, rdxyz) ; 
+			//rdz = _mm512_div_ps(rdz, rdxyz) ; 			
+			
 			rxj = _mm512_rsqrt14_ps(rdxyz);
 		
 			
@@ -146,7 +158,17 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 			rdx = _mm512_mul_ps(rdx, rdxyz) ; 			
 			rdy = _mm512_mul_ps(rdy, rdxyz) ; 
 			rdz = _mm512_mul_ps(rdz, rdxyz) ; 
-	
+		/*	
+		printf("valeur test0 : %f\n", rdx[0]) ;	
+		printf("valeur test1 : %f\n", rdx[1]) ;
+		printf("valeur test2 : %f\n", rdx[2]) ;	
+		printf("valeur test3 : %f\n", rdx[3]) ;
+		printf("valeur test4 : %f\n", rdx[4]) ;	
+		printf("valeur test5 : %f\n", rdx[5]) ;				
+		printf("valeur test6 : %f\n", rdx[6]) ;							
+		printf("valeur test7 : %f\n", rdx[7]) ;	
+		printf("---------------\n");								
+		*/	
 			rfx = _mm512_add_ps(rfx, rdx) ; 	
 			rfy = _mm512_add_ps(rfy, rdy) ; 	
 			rfz = _mm512_add_ps(rfz, rdz) ; 
@@ -160,21 +182,21 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		rfz = _mm512_mul_ps(rfz, rt) ; 
  				
 		
-		rxi = _mm512_loadu_ps(&vx[i]);
-		ryi = _mm512_loadu_ps(&vy[i]);
-		rzi = _mm512_loadu_ps(&vz[i]);
+		rvxi = _mm512_loadu_ps(&vx[i]);
+		rvyi = _mm512_loadu_ps(&vy[i]);
+		rvzi = _mm512_loadu_ps(&vz[i]);
 		
 	
 		
-		rxi = _mm512_add_ps(rxi, rfx) ; 	
-		ryi = _mm512_add_ps(ryi, rfy) ; 
-		rzi = _mm512_add_ps(rzi, rfz) ; 
+		rvxi = _mm512_add_ps(rvxi, rfx) ; 	
+		rvyi = _mm512_add_ps(rvyi, rfy) ; 
+		rvzi = _mm512_add_ps(rvzi, rfz) ; 
 		
 		
 		
-		_mm512_storeu_ps(&vx[i], rxi) ;				
-		_mm512_storeu_ps(&vy[i], ryi) ;	
-		_mm512_storeu_ps(&vz[i], rzi) ;
+		_mm512_storeu_ps(&vx[i], rvxi) ;				
+		_mm512_storeu_ps(&vy[i], rvyi) ;	
+		_mm512_storeu_ps(&vz[i], rvzi) ;
 		
 		
 		rfx = _mm512_setzero_ps() ;	
@@ -185,7 +207,6 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 
 		
 	}
-	
 	
 	
 	//3 floating-point operations
