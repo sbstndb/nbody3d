@@ -57,6 +57,9 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	float tmp3 = 0.0 ; 
 	float tmp4 = 0.0 ; 
 	
+	
+	float xtmp, ytmp, ztmp; 
+	
 
 	//
 	
@@ -71,35 +74,31 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		f32 fx2 = 0.0;
 		f32 fy2 = 0.0;
 		f32 fz2 = 0.0;
+		
+		xtmp = x[i] ; 
+		ytmp = y[i] ; 
+		ztmp = z[i] ; 
+										
+		
+		
+		
 
 		//23 floating-point operations
-		for (u64 j = 0; j < n; j+=2)
+		for (u64 j = 0; j < n; j++)
 		{
 		  //Newton's law
-		  const f32 dx = x[j] - x[i]; //1
-		  const f32 dx2 = x[j+1] - x[i]; //1
-		  const f32 dy = y[j] - y[i]; //2
-		  const f32 dy2 = y[j+1] - y[i]; //2
-		  const f32 dz = z[j] - z[i]; //3
-		  const f32 dz2 = z[j+1] - z[i]; //3
+		  const f32 dx = x[j] - xtmp; //1
+		  const f32 dy = y[j] - ytmp; //2
+		  const f32 dz = z[j] - ztmp; //3
 		  const f32 d_2 = (dx * dx) + (dy * dy) + (dz * dz) + softening; //9
-		  const f32 d_22 = (dx2 * dx2) + (dy2 * dy2) + (dz2 * dz2) + softening; //9
 		  tmp = sqrt(d_2) ; 
-		  tmp3 = sqrt(d_22) ; 
 		  tmp2 = tmp * tmp * tmp ; 
-		  tmp4 = tmp3 * tmp3 * tmp3 ; 
-		  const f32 d_3_over_2 = 1./tmp2 ; 
-		  const f32 d_3_over_22 = 1./tmp4 ; 		  
+		  const f32 d_3_over_2 = 1./tmp2 ;  		  
 
 		  //Net force
 		  fx += dx / d_3_over_2; //13
 		  fy += dy / d_3_over_2; //15
-		  fz += dz / d_3_over_2; //17
-
-		  //Net force
-		  fx2 += dx2 / d_3_over_22; //13
-		  fy2 += dy2 / d_3_over_22; //15
-		  fz2 += dz2 / d_3_over_22; //17		  
+		  fz += dz / d_3_over_2; //17	  
 		  
 		}
 
