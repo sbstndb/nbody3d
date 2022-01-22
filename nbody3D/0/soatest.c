@@ -79,38 +79,26 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	
 	//printf("valeur test : %f\n", x[n+8]) ; 
 	//
-	__m256 rxi, ryi, rzi, rxj, ryj, rzj , rfx, rfy, rfz, rdx, rdy, rdz, rdxyz;
-	//__m256 rxj2, ryj2, rzj2, rdx2, rdy2, rdz2, rdxyz2;	
-	
-	__m256 rsoft, rt;
+	__m256 rxi, ryi, rzi, rxj, ryj, rzj , rfx, rfy, rfz;
+	__m256 rdx  , rdy , rdz , rdxyz , rsoft, rt;
 	
 	rxi = _mm256_setzero_ps() ;
 	ryi = _mm256_setzero_ps() ;	
-	rzi = _mm256_setzero_ps() ;		
+	rzi = _mm256_setzero_ps() ;	
+
+	
 	rxj = _mm256_setzero_ps() ;
 	ryj = _mm256_setzero_ps() ;	
-	rzj = _mm256_setzero_ps() ;		
+	rzj = _mm256_setzero_ps() ;	
+
+	
 	rdx = _mm256_setzero_ps() ;
 	rdy = _mm256_setzero_ps() ;	
 	rzj = _mm256_setzero_ps() ;	
 	rdz = _mm256_setzero_ps() ;	
-	rdxyz = _mm256_setzero_ps() ;		
-	
-	/*
-	rxj2 = _mm256_setzero_ps() ;
-	ryj2 = _mm256_setzero_ps() ;	
-	rzj2 = _mm256_setzero_ps() ;		
-	rdx2 = _mm256_setzero_ps() ;
-	rdy2 = _mm256_setzero_ps() ;	
-	rzj2 = _mm256_setzero_ps() ;	
-	rdz2 = _mm256_setzero_ps() ;	
-	rdxyz2 = _mm256_setzero_ps() ;	
-	*/	
-	
-	
+	rdxyz = _mm256_setzero_ps() ;	
 	rsoft = _mm256_load_ps(&softening[0]) ;
-	rt = _mm256_load_ps(&dt[0]) ;
-		
+	rt = _mm256_load_ps(&dt[0]) ;	
 	for (u64 i = 1; i < n + 8; i++)
 	{
 
@@ -118,62 +106,45 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		rfx = _mm256_setzero_ps() ;	
 		rfy = _mm256_setzero_ps() ;	
 		rfz = _mm256_setzero_ps() ; 
+		// load i values
 		rxi = _mm256_loadu_ps(&x[i]);
 		ryi = _mm256_loadu_ps(&y[i]);
-		rzi = _mm256_loadu_ps(&z[i]);		
+		rzi = _mm256_loadu_ps(&z[i]);			
+		for (u64 j = 8; j < n + 8; j+=8)
+		{
 
+						
+			rxj = _mm256_load_ps(&x[j]);
+			rdx = _mm256_sub_ps(rxj, rxi) ; 
+			rxj = _mm256_mul_ps(rdx, rdx) ;							
+			ryj = _mm256_load_ps(&y[j]);
+			rdy = _mm256_sub_ps(ryj, ryi) ; 
+						
+			rzj = _mm256_load_ps(&z[j]);
+			rdz = _mm256_sub_ps(rzj, rzi) ;
+			rzj = _mm256_mul_ps(rdz, rdz) ;			
+			rxj = _mm256_add_ps(rxj, rzj) ;
+
+			ryj =   _mm256_mul_ps(rdy, rdy) ;
+			
+			rzj = _mm256_add_ps(rsoft, ryj) ;							
+			rdxyz = _mm256_add_ps(rxj, rzj) ;				
+
+
+			rxj = _mm256_rsqrt_ps(rdxyz);
 		
 			
-		for (u64 j = 8; j < n + 8; j+=16)
-		{
-					
-			rxj = _mm256_load_ps(&x[j]);	
-			ryj = _mm256_load_ps(&y[j]);
-			rzj = _mm256_load_ps(&z[j]);
-			rdx = _mm256_sub_ps(rxj, rxi) ; 
-			rdy = _mm256_sub_ps(ryj, ryi) ; 
-			rdz = _mm256_sub_ps(rzj, rzi) ;
-			rxj = _mm256_mul_ps(rdx, rdx) ;
-			rzj = _mm256_mul_ps(rdz, rdz) ;
-			rdxyz = _mm256_add_ps(rxj, rzj) ;
-			ryj =   _mm256_mul_ps(rdy, rdy) ;
-			rdxyz = _mm256_add_ps(rdxyz, ryj) ;				
-			rdxyz = _mm256_add_ps(rsoft, rdxyz) ;	
-			rxj = _mm256_rsqrt_ps(rdxyz);
 			rdxyz = _mm256_mul_ps(rxj, rxj) ;	
-			rdxyz = _mm256_mul_ps(rdxyz, rxj) ;			
+			rdxyz = _mm256_mul_ps(rdxyz, rxj) ;
+						
 			rdx = _mm256_mul_ps(rdx, rdxyz) ; 			
 			rdy = _mm256_mul_ps(rdy, rdxyz) ; 
 			rdz = _mm256_mul_ps(rdz, rdxyz) ; 
+	
 			rfx = _mm256_add_ps(rfx, rdx) ; 	
 			rfy = _mm256_add_ps(rfy, rdy) ; 	
-			rfz = _mm256_add_ps(rfz, rdz) ;
+			rfz = _mm256_add_ps(rfz, rdz) ; 
 			
-			
-			rxj = _mm256_load_ps(&x[j+8]);	
-			ryj = _mm256_load_ps(&y[j+8]);
-			rzj = _mm256_load_ps(&z[j+8]);
-			rdx = _mm256_sub_ps(rxj, rxi) ; 
-			rdy = _mm256_sub_ps(ryj, ryi) ; 
-			rdz = _mm256_sub_ps(rzj, rzi) ;
-			rxj = _mm256_mul_ps(rdx, rdx) ;
-			rzj = _mm256_mul_ps(rdz, rdz) ;
-			rdxyz = _mm256_add_ps(rxj, rzj) ;
-			ryj =   _mm256_mul_ps(rdy, rdy) ;
-			rdxyz = _mm256_add_ps(rdxyz, ryj) ;				
-			rdxyz = _mm256_add_ps(rsoft, rdxyz) ;	
-			rxj = _mm256_rsqrt_ps(rdxyz);
-			rdxyz = _mm256_mul_ps(rxj, rxj) ;	
-			rdxyz = _mm256_mul_ps(rdxyz, rxj) ;			
-			rdx = _mm256_mul_ps(rdx, rdxyz) ; 			
-			rdy = _mm256_mul_ps(rdy, rdxyz) ; 
-			rdz = _mm256_mul_ps(rdz, rdxyz) ; 
-			rfx = _mm256_add_ps(rfx, rdx) ; 	
-			rfy = _mm256_add_ps(rfy, rdy) ; 	
-			rfz = _mm256_add_ps(rfz, rdz) ;			
-
-			
-
 							
 		}
 		
@@ -181,20 +152,28 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		rfx = _mm256_mul_ps(rfx, rt) ; 	
 		rfy = _mm256_mul_ps(rfy, rt) ; 	
 		rfz = _mm256_mul_ps(rfz, rt) ; 
+ 				
+		
 		rxi = _mm256_loadu_ps(&vx[i]);
 		ryi = _mm256_loadu_ps(&vy[i]);
 		rzi = _mm256_loadu_ps(&vz[i]);
+		
+	
+		
 		rxi = _mm256_add_ps(rxi, rfx) ; 	
 		ryi = _mm256_add_ps(ryi, rfy) ; 
 		rzi = _mm256_add_ps(rzi, rfz) ; 
+		
+		
+		
 		_mm256_storeu_ps(&vx[i], rxi) ;				
 		_mm256_storeu_ps(&vy[i], ryi) ;	
 		_mm256_storeu_ps(&vz[i], rzi) ;
+		
+		
 		rfx = _mm256_setzero_ps() ;	
 		rfy = _mm256_setzero_ps() ;	
 		rfz = _mm256_setzero_ps() ;
-		
-	
 		
 
 
