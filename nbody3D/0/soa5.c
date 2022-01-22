@@ -137,7 +137,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 			rdxyz = _mm512_add_ps(rdxyz, ryj) ;				
 			rdxyz = _mm512_add_ps(rsoft, rdxyz) ;	
 
-			rxj = _mm512_rsqrt_ps(rdxyz);
+			rxj = _mm512_rsqrt14_ps(rdxyz);
 		
 			
 			rdxyz = _mm512_mul_ps(rxj, rxj) ;	
