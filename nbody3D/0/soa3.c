@@ -89,6 +89,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		  dy = y[j] - ytmp; //2
 		  dz = z[j] - ztmp; //3
 		  d_2 = (dx * dx) + (dy * dy) + (dz * dz) + softening; //9	
+		  
 		  tmp = sqrt(d_2) ; //11
 		  tmp2 = 1./tmp ; 
 		  tmp3 = tmp2 * tmp2 * tmp2 ; 

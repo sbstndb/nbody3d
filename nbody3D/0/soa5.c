@@ -28,7 +28,7 @@ typedef unsigned long long u64;
 //
 void init(float *x, float *y, float *z, float *vx, float *vy, float *vz, float *softening, float softening_value, float *dt, float dt_value,  u64 n)
 {
-	for (u64 i = 0 ; i < 8 ; i++){
+	for (u64 i = 0 ; i < 16 ; i++){
 		x[i] = 0.0 ; 
 		y[i] = 0.0 ; 
 		z[i] = 0.0 ;
@@ -36,7 +36,7 @@ void init(float *x, float *y, float *z, float *vx, float *vy, float *vz, float *
 		vy[i] = 0.0 ; 
 		vz[i] = 0.0 ; 
 	}
-	for (u64 i = 8; i < n + 8; i++)
+	for (u64 i = 8; i < n + 16; i++)
 	{
 		//
 		u64 r1 = (u64)rand();
@@ -53,11 +53,11 @@ void init(float *x, float *y, float *z, float *vx, float *vy, float *vz, float *
 		vy[i] = 0.0;
 		vz[i] = 0.0;
 	}
-	for (u64 i  = 0  ; i < 64 ; i++){
+	for (u64 i  = 0  ; i < 128 ; i++){
 		softening[i] = softening_value;
 		dt[i] = dt_value ; 
 	}
-	for (u64 i = n + 8 ; i < n + 16 ; i++){
+	for (u64 i = n + 16 ; i < n + 32 ; i++){
 		x[i] = 0.0 ; 
 		y[i] = 0.0 ; 
 		z[i] = 0.0 ;
@@ -65,7 +65,7 @@ void init(float *x, float *y, float *z, float *vx, float *vy, float *vz, float *
 		vy[i] = 0.0 ; 
 		vz[i] = 0.0 ; 
 	}	
-	for (int i = 0 ; i < n+16 ; i++){
+	for (int i = 0 ; i < n+32 ; i++){
 	//printf("%f\n",vx[i]);
 	//sleep(1);
 	}
@@ -79,85 +79,85 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	
 	//printf("valeur test : %f\n", x[n+8]) ; 
 	//
-	__m256 rxi, ryi, rzi, rxj, ryj, rzj , rfx, rfy, rfz;
-	__m256 rvxi, rvyi, rvzi ; 
-	__m256 rdx  , rdy , rdz , rdxyz , rsoft, rt;
+	__m512 rxi, ryi, rzi, rxj, ryj, rzj , rfx, rfy, rfz;
+	__512 rvxi, rvyi, rvzi ; 
+	__m512 rdx  , rdy , rdz , rdxyz , rsoft, rt;
 	
-	rxi = _mm256_setzero_ps() ;
-	ryi = _mm256_setzero_ps() ;	
-	rzi = _mm256_setzero_ps() ;	
-	rvxi = _mm256_setzero_ps() ;	
-	rvyi = _mm256_setzero_ps() ;	
-	rvzi = _mm256_setzero_ps() ;	
+	rxi = _mm512_setzero_ps() ;
+	ryi = _mm512_setzero_ps() ;	
+	rzi = _mm512_setzero_ps() ;	
+	rvxi = _mm512_setzero_ps() ;	
+	rvyi = _mm512_setzero_ps() ;	
+	rvzi = _mm512_setzero_ps() ;	
 	
-	rxj = _mm256_setzero_ps() ;
-	ryj = _mm256_setzero_ps() ;	
-	rzj = _mm256_setzero_ps() ;	
+	rxj = _mm512_setzero_ps() ;
+	ryj = _mm512_setzero_ps() ;	
+	rzj = _mm512_setzero_ps() ;	
 
 	
-	rdx = _mm256_setzero_ps() ;
-	rdy = _mm256_setzero_ps() ;	
-	rzj = _mm256_setzero_ps() ;	
-	rdz = _mm256_setzero_ps() ;	
-	rdxyz = _mm256_setzero_ps() ;	
-	rsoft = _mm256_load_ps(&softening[0]) ;
-	rt = _mm256_load_ps(&dt[0]) ;	
-	for (u64 i = 1; i < n + 8; i++)
+	rdx = _mm512_setzero_ps() ;
+	rdy = _mm512_setzero_ps() ;	
+	rzj = _mm512_setzero_ps() ;	
+	rdz = _mm512_setzero_ps() ;	
+	rdxyz = _mm512_setzero_ps() ;	
+	rsoft = _mm512_load_ps(&softening[0]) ;
+	rt = _mm512_load_ps(&dt[0]) ;	
+	for (u64 i = 1; i < n + 16; i++)
 	{
 	//
 
-		rfx = _mm256_setzero_ps() ;	
-		rfy = _mm256_setzero_ps() ;	
-		rfz = _mm256_setzero_ps() ; 
+		rfx = _mm512_setzero_ps() ;	
+		rfy = _mm512_setzero_ps() ;	
+		rfz = _mm512_setzero_ps() ; 
 		// load i values
-		rxi = _mm256_loadu_ps(&x[i]);
-		ryi = _mm256_loadu_ps(&y[i]);
-		rzi = _mm256_loadu_ps(&z[i]);			
-		for (u64 j = 8; j < n + 8; j+=8)
+		rxi = _mm512_loadu_ps(&x[i]);
+		ryi = _mm512_loadu_ps(&y[i]);
+		rzi = _mm512_loadu_ps(&z[i]);			
+		for (u64 j = 16; j < n + 16; j+=16)
 		{
 		//printf("j ; %lld\n", j);		
 			//printf("j : %lld\n", j);
 			
-			rxj = _mm256_load_ps(&x[j]);	
-			ryj = _mm256_load_ps(&y[j]);
-			rzj = _mm256_load_ps(&z[j]);
+			rxj = _mm512_load_ps(&x[j]);	
+			ryj = _mm512_load_ps(&y[j]);
+			rzj = _mm512_load_ps(&z[j]);
 			
 
 
-			rdx = _mm256_sub_ps(rxj, rxi) ; 
-			rdy = _mm256_sub_ps(ryj, ryi) ; 
-			rdz = _mm256_sub_ps(rzj, rzi) ;
+			rdx = _mm512_sub_ps(rxj, rxi) ; 
+			rdy = _mm512_sub_ps(ryj, ryi) ; 
+			rdz = _mm512_sub_ps(rzj, rzi) ;
 
 
 			 
-			rxj = _mm256_mul_ps(rdx, rdx) ;
-			rzj = _mm256_mul_ps(rdz, rdz) ;
+			rxj = _mm512_mul_ps(rdx, rdx) ;
+			rzj = _mm512_mul_ps(rdz, rdz) ;
 			
 
 						
 			
-			rdxyz = _mm256_add_ps(rxj, rzj) ;
-			ryj =   _mm256_mul_ps(rdy, rdy) ;
-			rdxyz = _mm256_add_ps(rdxyz, ryj) ;			
-			//rdxyz = _mm256_mul_ps(ryj, rdxyz) ;	
-			rdxyz = _mm256_add_ps(rsoft, rdxyz) ;	
-			//rxj = _mm256_sqrt_ps(rdxyz) ;
-			//rdxyz = _mm256_mul_ps(rxj, rxj) ;	
-			//rdxyz = _mm256_mul_ps(rdxyz, rxj) ;	
+			rdxyz = _mm512_add_ps(rxj, rzj) ;
+			ryj =   _mm512_mul_ps(rdy, rdy) ;
+			rdxyz = _mm512_add_ps(rdxyz, ryj) ;			
+			//rdxyz = _mm512_mul_ps(ryj, rdxyz) ;	
+			rdxyz = _mm512_add_ps(rsoft, rdxyz) ;	
+			//rxj = _mm512_sqrt_ps(rdxyz) ;
+			//rdxyz = _mm512_mul_ps(rxj, rxj) ;	
+			//rdxyz = _mm512_mul_ps(rdxyz, rxj) ;	
 			
-			//rdx = _mm256_div_ps(rdx, rdxyz) ; 			
-			//rdy = _mm256_div_ps(rdy, rdxyz) ; 
-			//rdz = _mm256_div_ps(rdz, rdxyz) ; 			
+			//rdx = _mm512_div_ps(rdx, rdxyz) ; 			
+			//rdy = _mm512_div_ps(rdy, rdxyz) ; 
+			//rdz = _mm512_div_ps(rdz, rdxyz) ; 			
 			
-			rxj = _mm256_rsqrt_ps(rdxyz);
+			rxj = _mm512_rsqrt_ps(rdxyz);
 		
 			
-			rdxyz = _mm256_mul_ps(rxj, rxj) ;	
-			rdxyz = _mm256_mul_ps(rdxyz, rxj) ;
+			rdxyz = _mm512_mul_ps(rxj, rxj) ;	
+			rdxyz = _mm512_mul_ps(rdxyz, rxj) ;
 						
-			rdx = _mm256_mul_ps(rdx, rdxyz) ; 			
-			rdy = _mm256_mul_ps(rdy, rdxyz) ; 
-			rdz = _mm256_mul_ps(rdz, rdxyz) ; 
+			rdx = _mm512_mul_ps(rdx, rdxyz) ; 			
+			rdy = _mm512_mul_ps(rdy, rdxyz) ; 
+			rdz = _mm512_mul_ps(rdz, rdxyz) ; 
 		/*	
 		printf("valeur test0 : %f\n", rdx[0]) ;	
 		printf("valeur test1 : %f\n", rdx[1]) ;
@@ -169,39 +169,39 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		printf("valeur test7 : %f\n", rdx[7]) ;	
 		printf("---------------\n");								
 		*/	
-			rfx = _mm256_add_ps(rfx, rdx) ; 	
-			rfy = _mm256_add_ps(rfy, rdy) ; 	
-			rfz = _mm256_add_ps(rfz, rdz) ; 
+			rfx = _mm512_add_ps(rfx, rdx) ; 	
+			rfy = _mm512_add_ps(rfy, rdy) ; 	
+			rfz = _mm512_add_ps(rfz, rdz) ; 
 			
 							
 		}
 		
 			//sleep(1) ;	
-		rfx = _mm256_mul_ps(rfx, rt) ; 	
-		rfy = _mm256_mul_ps(rfy, rt) ; 	
-		rfz = _mm256_mul_ps(rfz, rt) ; 
+		rfx = _mm512_mul_ps(rfx, rt) ; 	
+		rfy = _mm512_mul_ps(rfy, rt) ; 	
+		rfz = _mm512_mul_ps(rfz, rt) ; 
  				
 		
-		rvxi = _mm256_loadu_ps(&vx[i]);
-		rvyi = _mm256_loadu_ps(&vy[i]);
-		rvzi = _mm256_loadu_ps(&vz[i]);
+		rvxi = _mm512_loadu_ps(&vx[i]);
+		rvyi = _mm512_loadu_ps(&vy[i]);
+		rvzi = _mm512_loadu_ps(&vz[i]);
 		
 	
 		
-		rvxi = _mm256_add_ps(rvxi, rfx) ; 	
-		rvyi = _mm256_add_ps(rvyi, rfy) ; 
-		rvzi = _mm256_add_ps(rvzi, rfz) ; 
+		rvxi = _mm512_add_ps(rvxi, rfx) ; 	
+		rvyi = _mm512_add_ps(rvyi, rfy) ; 
+		rvzi = _mm512_add_ps(rvzi, rfz) ; 
 		
 		
 		
-		_mm256_storeu_ps(&vx[i], rvxi) ;				
-		_mm256_storeu_ps(&vy[i], rvyi) ;	
-		_mm256_storeu_ps(&vz[i], rvzi) ;
+		_mm512_storeu_ps(&vx[i], rvxi) ;				
+		_mm512_storeu_ps(&vy[i], rvyi) ;	
+		_mm512_storeu_ps(&vz[i], rvzi) ;
 		
 		
-		rfx = _mm256_setzero_ps() ;	
-		rfy = _mm256_setzero_ps() ;	
-		rfz = _mm256_setzero_ps() ;
+		rfx = _mm512_setzero_ps() ;	
+		rfy = _mm512_setzero_ps() ;	
+		rfz = _mm512_setzero_ps() ;
 		
 
 
@@ -211,7 +211,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	
 	//3 floating-point operations
 
-	for (u64 i = 0 ; i < 8 ; i++){
+	for (u64 i = 0 ; i < 16 ; i++){
 		x[i] = 0.0 ; 
 		y[i] = 0.0 ; 
 		z[i] = 0.0 ;
@@ -219,7 +219,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		vy[i] = 0.0 ; 
 		vz[i] = 0.0 ; 
 	}
-	for (u64 i = n + 8 ; i < n + 16 ; i++){
+	for (u64 i = n + 16 ; i < n + 32 ; i++){
 		x[i] = 0.0 ; 
 		y[i] = 0.0 ; 
 		z[i] = 0.0 ;
@@ -228,7 +228,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		vz[i] = 0.0 ; 
 	}	
 			
-	for (u64 i = 8; i < n + 8; i++)
+	for (u64 i = 16; i < n + 16; i++)
 	{
 	x[i] += dt[0] * vx[i];
 	y[i] += dt[0] * vy[i];
@@ -249,9 +249,9 @@ int main(int argc, char **argv)
 	// declaration of file for saving 1st coordinates during time
 	#ifdef SAVE
 		FILE *xfilePtr = NULL ; 
-		xfilePtr = fopen("nbodyx3.txt", "w");
+		xfilePtr = fopen("nbodyx5.txt", "w");
 		FILE *vfilePtr = NULL ; 
-		vfilePtr = fopen("nbodyv3.txt", "w");		
+		vfilePtr = fopen("nbodyv5.txt", "w");		
 		if (xfilePtr == NULL || vfilePtr == NULL){
 		printf("Issue in writing in file\n") ; 
 		}
@@ -272,8 +272,8 @@ int main(int argc, char **argv)
 	float *vx = aligned_alloc(64, sizeof(float) * (n+128)) ; 	
 	float *vy = aligned_alloc(64, sizeof(float) * (n+128)) ; 	
 	float *vz = aligned_alloc(64, sizeof(float) * (n+128)) ; 	
-	float *softening = aligned_alloc(64, sizeof(float) * 64) ; 
-	float *dt = aligned_alloc(64, sizeof(float) * 64) ; 	
+	float *softening = aligned_alloc(64, sizeof(float) * 128) ; 
+	float *dt = aligned_alloc(64, sizeof(float) * 128) ; 	
 	//
 	init(x, y,z, vx, vy, vz, softening, softening_value, dt, dt_value,  n);
 
@@ -291,18 +291,18 @@ int main(int argc, char **argv)
 	
 	#ifdef SAVE
 		// write 1st trajectory particle for comparison 
-		fputs(gcvt(x[8], 16, buf), xfilePtr)  ; 
+		fputs(gcvt(x[16], 16, buf), xfilePtr)  ; 
 		fputs(" ", xfilePtr)  ; 
-		fputs(gcvt(y[8], 16, buf), xfilePtr)  ; 
+		fputs(gcvt(y[16], 16, buf), xfilePtr)  ; 
 		fputs(" ", xfilePtr)  ;       
-		fputs(gcvt(z[8], 16, buf), xfilePtr)  ; 
+		fputs(gcvt(z[16], 16, buf), xfilePtr)  ; 
 		fputs(" \n", xfilePtr)  ;         
 		
-		fputs(gcvt(vx[8], 16, buf), vfilePtr)  ; 
+		fputs(gcvt(vx[16], 16, buf), vfilePtr)  ; 
 		fputs(" ", vfilePtr)  ; 
-		fputs(gcvt(vy[8], 16, buf), vfilePtr)  ; 
+		fputs(gcvt(vy[16], 16, buf), vfilePtr)  ; 
 		fputs(" ", vfilePtr)  ;       
-		fputs(gcvt(vz[8], 16, buf), vfilePtr)  ; 
+		fputs(gcvt(vz[16], 16, buf), vfilePtr)  ; 
 		fputs(" \n", vfilePtr)  ;		 
 	#endif	
 		
