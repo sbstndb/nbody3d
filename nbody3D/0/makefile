@@ -1,5 +1,5 @@
 
-all: aos1.g aos2.g soa1.g soa2.g soa3.g soa4.g soa5.g
+all: aos1.g aos2.g soa1.g soa2.g soa3.g soa4.g soa5.g soatest.g
 
 aos1.g:aos1.c
 	gcc -march=native -mavx2 -Ofast -fopt-info-all=nbody.gcc.optrpt $< -o $@ -lm -fopenmp
@@ -19,9 +19,13 @@ soa3.g:soa3.c
 	gcc -march=native -mtune=native -funroll-loops -finline-functions -fpeel-loops -ftree-vectorize -ftree-loop-vectorize $(avx) -mavx2 -fno-math-errno -Ofast $< -o $@ -lm -fopenmp
 	
 soa4.g:soa4.c
-	gcc -march=native -mtune=native -funroll-loops -finline-functions -fpeel-loops -ftree-vectorize -ftree-loop-vectorize $(avx) -mavx2 -fno-math-errno -Ofast $< -o $@ -lm -fopenmp			
+	gcc -march=native -mtune=native -funroll-loops -funroll-all-loops -finline-functions -fpeel-loops -ftree-vectorize -ftree-loop-vectorize $(avx) -mavx2 -mfma -fno-math-errno -Ofast $< -o $@ -lm -fopenmp			
 
 soa5.g:soa5.c
+	gcc -march=native -mtune=native -funroll-loops -finline-functions -fpeel-loops -ftree-vectorize -ftree-loop-vectorize $(avx) -mavx2 -fno-math-errno -Ofast $< -o $@ -lm -fopenmp
+
+
+soatest.g:soatest.c
 	gcc -march=native -mtune=native -funroll-loops -finline-functions -fpeel-loops -ftree-vectorize -ftree-loop-vectorize $(avx) -mavx2 -fno-math-errno -Ofast $< -o $@ -lm -fopenmp
 
 
