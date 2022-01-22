@@ -1,8 +1,16 @@
 //
+// structure : soa
+// optimization of sqrt etc, vectorization and unrolling loops
+//
+//
 #include <omp.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <immintrin.h>
+
+#define SAVE
+
 
 //
 typedef float              f32;
@@ -33,9 +41,9 @@ void init(float *x, float *y, float *z, float *vx, float *vy, float *vz, u64 n)
 		z[i] = sign * (f32)rand() / (f32)RAND_MAX;
 
 		//
-		vx[i] = (f32)rand() / (f32)RAND_MAX;
-		vy[i] = sign * (f32)rand() / (f32)RAND_MAX;
-		vz[i] = (f32)rand() / (f32)RAND_MAX;
+		vx[i] = 0.0;
+		vy[i] = 0.0;
+		vz[i] = 0.0;
 	}
 }
 
@@ -46,6 +54,8 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	const f32 softening = 1e-20;
 
 	//
+	
+
 	for (u64 i = 0; i < n; i++)
 	{
 	//
@@ -53,26 +63,44 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		f32 fy = 0.0;
 		f32 fz = 0.0;
 
+		f32 fx2 = 0.0;
+		f32 fy2 = 0.0;
+		f32 fz2 = 0.0;
+
 		//23 floating-point operations
-		for (u64 j = 0; j < n; j++)
+		for (u64 j = 0; j < n; j+=2)
 		{
 		  //Newton's law
 		  const f32 dx = x[j] - x[i]; //1
+		  const f32 dx2 = x[j+1] - x[i]; //1
 		  const f32 dy = y[j] - y[i]; //2
+		  const f32 dy2 = y[j+1] - y[i]; //2
 		  const f32 dz = z[j] - z[i]; //3
+		  const f32 dz2 = z[j+1] - z[i]; //3
 		  const f32 d_2 = (dx * dx) + (dy * dy) + (dz * dz) + softening; //9
+		  const f32 d_22 = (dx2 * dx2) + (dy2 * dy2) + (dz2 * dz2) + softening; //9
 		  const f32 d_3_over_2 = pow(d_2, 3.0 / 2.0); //11
-
+		  const f32 d_3_over_22 = pow(d_22, 3.0 / 2.0); //11
 		  //Net force
 		  fx += dx / d_3_over_2; //13
 		  fy += dy / d_3_over_2; //15
 		  fz += dz / d_3_over_2; //17
+
+		  //Net force
+		  fx2 += dx2 / d_3_over_22; //13
+		  fy2 += dy2 / d_3_over_22; //15
+		  fz2 += dz2 / d_3_over_22; //17		  
+		  
 		}
 
 		//
 		vx[i] += dt * fx; //19
 		vy[i] += dt * fy; //21
 		vz[i] += dt * fz; //23
+	
+		vx[i] += dt * fx2; //19
+		vy[i] += dt * fy2; //21
+		vz[i] += dt * fz2; //23
 	}
 
 	//3 floating-point operations
@@ -95,15 +123,14 @@ int main(int argc, char **argv)
 	// declaration of file for saving 1st coordinates during time
 	#ifdef SAVE
 	  FILE *xfilePtr = NULL ; 
-	  xfilePtr = fopen("nbodyx1.txt", "w");
+	  xfilePtr = fopen("soa3x.txt", "w");
 	  FILE *vfilePtr = NULL ; 
-	  vfilePtr = fopen("nbodyv1.txt", "w");	  
+	  vfilePtr = fopen("soa3v.txt", "w");	  
 	  if (xfilePtr == NULL || vfilePtr == NULL){
 	  	printf("Issue in writing in file\n") ; 
 	  }
 	  char buf[100] ;   
 	#endif
-
 
 	//
 	f64 rate = 0.0, drate = 0.0;
@@ -113,12 +140,12 @@ int main(int argc, char **argv)
 
 	//
 	//particle_t *p = malloc(sizeof(particle_t) * n);
-	float *x = malloc(sizeof(float) * n) ; 
-	float *y = malloc(sizeof(float) * n) ; 	
-	float *z = malloc(sizeof(float) * n) ; 	
-	float *vx = malloc(sizeof(float) * n) ; 	
-	float *vy = malloc(sizeof(float) * n) ; 	
-	float *vz = malloc(sizeof(float) * n) ; 	
+	float *x = aligned_alloc(64, sizeof(float) * n) ; 
+	float *y = aligned_alloc(64, sizeof(float) * n) ; 	
+	float *z = aligned_alloc(64, sizeof(float) * n) ; 	
+	float *vx = aligned_alloc(64, sizeof(float) * n) ; 	
+	float *vy = aligned_alloc(64, sizeof(float) * n) ; 	
+	float *vz = aligned_alloc(64, sizeof(float) * n) ; 	
 	
 	//
 	init(x, y,z, vx, vy, vz, n);
@@ -133,23 +160,23 @@ int main(int argc, char **argv)
 	//
 	for (u64 i = 0; i < steps; i++)
 	{
-    
-      #ifdef SAVE
-	      // write 1st trajectory particle for comparison 
-	      fputs(gcvt(p[0].x, 16, buf), xfilePtr)  ; 
-	      fputs(" ", xfilePtr)  ; 
-	      fputs(gcvt(p[0].y, 16, buf), xfilePtr)  ; 
-	      fputs(" ", xfilePtr)  ;       
-	      fputs(gcvt(p[0].z, 16, buf), xfilePtr)  ; 
-	      fputs(" \n", xfilePtr)  ;   
-	      
-	      fputs(gcvt(p[0].vx, 16, buf), vfilePtr)  ; 
-	      fputs(" ", vfilePtr)  ; 
-	      fputs(gcvt(p[0].vy, 16, buf), vfilePtr)  ; 
-	      fputs(" ", vfilePtr)  ;       
-	      fputs(gcvt(p[0].vz, 16, buf), vfilePtr)  ; 
-	      fputs(" \n", vfilePtr)  ; 	         
-      #endif  	
+	
+	#ifdef SAVE
+		// write 1st trajectory particle for comparison 
+		fputs(gcvt(x[0], 16, buf), xfilePtr)  ; 
+		fputs(" ", xfilePtr)  ; 
+		fputs(gcvt(y[0], 16, buf), xfilePtr)  ; 
+		fputs(" ", xfilePtr)  ;       
+		fputs(gcvt(z[0], 16, buf), xfilePtr)  ; 
+		fputs(" \n", xfilePtr)  ;     
+		
+		fputs(gcvt(vx[0], 16, buf), vfilePtr)  ; 
+		fputs(" ", vfilePtr)  ; 
+		fputs(gcvt(vy[0], 16, buf), vfilePtr)  ; 
+		fputs(" ", vfilePtr)  ;       
+		fputs(gcvt(vz[0], 16, buf), vfilePtr)  ; 
+		fputs(" \n", vfilePtr)  ;  		 
+	#endif	
 	
 	//Measure
 	const f64 start = omp_get_wtime();
@@ -179,6 +206,8 @@ int main(int argc, char **argv)
 	(i < warmup) ? "*" : "");
 
 	fflush(stdout);
+
+	
 	}
 
 	//
@@ -197,11 +226,12 @@ int main(int argc, char **argv)
 	free(vx);
 	free(vy);
 	free(vz);
-
+	
 	#ifdef SAVE
-		fclose(xfilePtr); 
-		fclose(vfilePtr) ; 
-	#endif
+		fclose(xfilePtr);
+		fclose(vfilePtr) ;  
+	#endif	
+
 	//
 	return 0;
 }

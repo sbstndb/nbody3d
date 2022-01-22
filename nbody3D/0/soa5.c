@@ -1,4 +1,8 @@
 //
+// structure : soa
+// optimization : avx512 intrinsic functions
+//
+//
 #include <omp.h>
 #include <math.h>
 #include <stdio.h>
@@ -45,9 +49,9 @@ void init(float *x, float *y, float *z, float *vx, float *vy, float *vz, float *
 		z[i] = sign * (f32)rand() / (f32)RAND_MAX;
 
 		//
-		vx[i] = (f32)rand() / (f32)RAND_MAX;
-		vy[i] = sign * (f32)rand() / (f32)RAND_MAX;
-		vz[i] = (f32)rand() / (f32)RAND_MAX;
+		vx[i] = 0.0;
+		vy[i] = 0.0;
+		vz[i] = 0.0;
 	}
 	for (u64 i  = 0  ; i < 64 ; i++){
 		softening[i] = softening_value;
@@ -97,8 +101,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	rdz = _mm256_setzero_ps() ;	
 	rdxyz = _mm256_setzero_ps() ;	
 	rsoft = _mm256_load_ps(&softening[0]) ;
-	rt = _mm256_load_ps(&dt[0]) ;
-	#pragma omp parallel for	
+	rt = _mm256_load_ps(&dt[0]) ;	
 	for (u64 i = 1; i < n + 8; i++)
 	{
 	//
@@ -224,8 +227,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		vy[i] = 0.0 ; 
 		vz[i] = 0.0 ; 
 	}	
-	
-	# pragma omp parallel for		
+			
 	for (u64 i = 8; i < n + 8; i++)
 	{
 	x[i] += dt[0] * vx[i];

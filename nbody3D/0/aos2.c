@@ -1,4 +1,9 @@
 //
+// base version
+// structure : AOS
+// optimized
+
+
 #include <omp.h>
 #include <math.h>
 #include <stdio.h>
@@ -35,9 +40,9 @@ void init(particle_t *p, u64 n)
       p[i].z = sign * (f32)rand() / (f32)RAND_MAX;
 
       //
-      p[i].vx = (f32)rand() / (f32)RAND_MAX;
-      p[i].vy = sign * (f32)rand() / (f32)RAND_MAX;
-      p[i].vz = (f32)rand() / (f32)RAND_MAX;
+      p[i].vx = 0.0;
+      p[i].vy = 0.0;
+      p[i].vz = 0.0;
     }
 }
 
@@ -46,6 +51,10 @@ void move_particles(particle_t *p, const f32 dt, u64 n)
 {
   //
   const f32 softening = 1e-20;
+  f32 dx, dy, dz, d_2, d_3_over_2 ; 
+  float tmp = 0.0 ; 
+  float tmp2 ; 
+  
 
   //
   for (u64 i = 0; i < n; i++)
@@ -59,11 +68,14 @@ void move_particles(particle_t *p, const f32 dt, u64 n)
       for (u64 j = 0; j < n; j++)
 	{
 	  //Newton's law
-	  const f32 dx = p[j].x - p[i].x; //1
-	  const f32 dy = p[j].y - p[i].y; //2
-	  const f32 dz = p[j].z - p[i].z; //3
-	  const f32 d_2 = (dx * dx) + (dy * dy) + (dz * dz) + softening; //9
-	  const f32 d_3_over_2 = pow(d_2, 3.0 / 2.0); //11
+	  dx = p[j].x - p[i].x; //1
+	  dy = p[j].y - p[i].y; //2
+	  dz = p[j].z - p[i].z; //3
+	  d_2 = (dx * dx) + (dy * dy) + (dz * dz) + softening; //9
+	  //const f32 d_3_over_2 = pow(d_2, 3.0 / 2.0); //11
+	  tmp = sqrt(d_2) ; 
+	  tmp2 = tmp * tmp * tmp ; 
+	  d_3_over_2 = 1./tmp2 ;  			  
 
 	  //Net force
 	  fx += dx / d_3_over_2; //13
@@ -97,9 +109,9 @@ int main(int argc, char **argv)
   // declaration of file for saving 1st coordinates during time
   #ifdef SAVE
 	  FILE *xfilePtr = NULL ; 
-	  xfilePtr = fopen("nbodyx.txt", "w");
+	  xfilePtr = fopen("aos2x.txt", "w");
 	  FILE *vfilePtr = NULL ; 
-	  vfilePtr = fopen("nbodyv.txt", "w");
+	  vfilePtr = fopen("aos2v.txt", "w");
 	  if ((xfilePtr == NULL) || vfilePtr == NULL){
 	  	printf("Issue in writing in file\n") ; 
 	  }
