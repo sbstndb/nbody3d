@@ -80,7 +80,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 	//printf("valeur test : %f\n", x[n+8]) ; 
 	//
 	__m512 rxi, ryi, rzi, rxj, ryj, rzj , rfx, rfy, rfz;
-	__512 rvxi, rvyi, rvzi ; 
+	__m512 rvxi, rvyi, rvzi ; 
 	__m512 rdx  , rdy , rdz , rdxyz , rsoft, rt;
 	
 	rxi = _mm512_setzero_ps() ;
