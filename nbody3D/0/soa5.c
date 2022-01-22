@@ -110,7 +110,7 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 		rxi = _mm512_loadu_ps(&x[i]);
 		ryi = _mm512_loadu_ps(&y[i]);
 		rzi = _mm512_loadu_ps(&z[i]);			
-		for (u64 j = 8; j < n + 8; j+=16)
+		for (u64 j = 16; j < n + 16; j+=16)
 		{
 
 						
