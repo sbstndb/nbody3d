@@ -48,7 +48,7 @@ run_one_2:
 
 
 run_init_512:
-	./aos1.g 16000 0 0 && ./aos2.g 16000 0 0  &&  ./soa1.g 16000 0 0  && ./soa2.g 16000 0 0  && ./soa3.g 16000 0 0  && ./soa4.g 16000 0 0  && ./soa5.g 16000 0 0  && python3 error.py >> result_precision_init.txt && cat result_precision_init.txt
+	./aos1.g 16000 0 0 && ./aos2.g 16000 0 0  &&  ./soa1.g 16000 0 0  && ./soa2.g 16000 0 0  && ./soa3.g 16000 0 0  && ./soa4.g 16000 0 0  && ./soa5.g 16000 0 0  && python3 error512.py >> result_precision_init.txt && cat result_precision_init.txt
 
 run_init_2:
 	./aos1.g 16000 0 0 && ./aos2.g 16000 0 0  &&  ./soa1.g 16000 0 0  && ./soa2.g 16000 0 0  && ./soa3.g 16000 0 0  && ./soa4.g 16000 0 0  && python3 error.py >> result_precision_init.txt && cat result_precision_init.txt
