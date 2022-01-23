@@ -1,5 +1,5 @@
 import numpy as np
-import pylab as pl
+
 
 
 def save_position(name):
@@ -73,6 +73,6 @@ for i in range(len(ntotal)):
 	print("Erreur maximale : " + str(np.max(dtotal[:,i])))
 
 
-
+import pylab as pl
 plot_error(dtotal, ntotal)
 	

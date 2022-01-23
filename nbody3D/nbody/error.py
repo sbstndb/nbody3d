@@ -1,5 +1,4 @@
 import numpy as np
-import pylab as pl
 
 
 def save_position(name):
@@ -73,6 +72,7 @@ for i in range(len(ntotal)):
 
 
 
+import pylab as pl
 
 plot_error(dtotal, ntotal)
 	
