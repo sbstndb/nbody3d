@@ -72,7 +72,9 @@ for i in range(len(ntotal)):
 
 
 
-import pylab as pl
-
-plot_error(dtotal, ntotal)
+try:
+	import pylab as pl
+	plot_error(dtotal, ntotal)
+except : 
+	print("Please installl pylab\n")
 	

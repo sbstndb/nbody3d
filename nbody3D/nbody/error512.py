@@ -73,6 +73,9 @@ for i in range(len(ntotal)):
 	print("Erreur maximale : " + str(np.max(dtotal[:,i])))
 
 
-import pylab as pl
-plot_error(dtotal, ntotal)
+try:
+	import pylab as pl
+	plot_error(dtotal, ntotal)
+except : 
+	print("Please installl pylab\n")
 	
