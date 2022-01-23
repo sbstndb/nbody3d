@@ -36,7 +36,7 @@ void init(float *x, float *y, float *z, float *vx, float *vy, float *vz, float *
 		vy[i] = 0.0 ; 
 		vz[i] = 0.0 ; 
 	}
-	for (u64 i = 8; i < n + 16; i++)
+	for (u64 i = 16; i < n + 16; i++)
 	{
 		//
 		u64 r1 = (u64)rand();
