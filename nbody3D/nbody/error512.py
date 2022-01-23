@@ -25,10 +25,12 @@ def difference_by_particule(x1, x2):
 
 def plot_error(dtotal, ntotal):
 	for i in range(len(ntotal)):
-		pl.plot(dtotal[:,i], linewidth = 0.1, label='ntotal[i]')
+		pl.plot(dtotal[:,i], linewidth = 0.1, label=ntotal[i])
 	pl.legend()
 	pl.grid()
 	pl.yscale("log")
+	pl.xlabel("particle ID")
+	pl.ylabel("L1 error VS basis code")
 	#pl.show()
 	print("\nPlease open results/error.png\n")
 	pl.savefig("results/error.png")
