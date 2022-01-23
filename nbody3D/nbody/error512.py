@@ -3,7 +3,7 @@ import numpy as np
 
 
 def save_position(name):
-	faos = open(name, "r")
+	faos = open("results/" + name, "r")
 	daos = faos.readlines()
 	xaos = np.zeros((len(daos), 3), dtype="float64")
 	for i in range(len(daos)):
