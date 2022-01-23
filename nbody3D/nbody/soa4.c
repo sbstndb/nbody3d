@@ -218,8 +218,9 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 int main(int argc, char **argv)
 {
 	//
-	const u64 n = (argc > 1) ? atoll(argv[1]) : 16384;
-	const u64 steps= 10;
+  const u64 n = (argc > 1) ? atoll(argv[1]) : 16384;
+  const u64 warmup = (argc > 2) ? atoll(argv[2]) : 3;   
+  const u64 steps = (argc > 3) ? atoll(argv[3]) : 10;  
 	const f32 dt_value = 0.01;
 	const f32 softening_value = 1e-20;
 	
@@ -238,9 +239,6 @@ int main(int argc, char **argv)
 	
 	//
 	f64 rate = 0.0, drate = 0.0;
-
-	//Steps to skip for warm up
-	const u64 warmup = 3;
 
 	//
 
@@ -266,23 +264,7 @@ int main(int argc, char **argv)
 	for (u64 i = 0; i < steps; i++)
 	{
 	
-	
-	#ifdef SAVE
-		// write 1st trajectory particle for comparison 
-		fputs(gcvt(x[8], 16, buf), xfilePtr)  ; 
-		fputs(" ", xfilePtr)  ; 
-		fputs(gcvt(y[8], 16, buf), xfilePtr)  ; 
-		fputs(" ", xfilePtr)  ;       
-		fputs(gcvt(z[8], 16, buf), xfilePtr)  ; 
-		fputs(" \n", xfilePtr)  ;         
-		
-		fputs(gcvt(vx[8], 16, buf), vfilePtr)  ; 
-		fputs(" ", vfilePtr)  ; 
-		fputs(gcvt(vy[8], 16, buf), vfilePtr)  ; 
-		fputs(" ", vfilePtr)  ;       
-		fputs(gcvt(vz[8], 16, buf), vfilePtr)  ; 
-		fputs(" \n", vfilePtr)  ;		 
-	#endif	
+
 		
 	
 	//Measure
@@ -314,6 +296,24 @@ int main(int argc, char **argv)
 
 	fflush(stdout);
 	}
+
+      #ifdef SAVE
+	      for (unsigned long long b = 0 ; b < n ; b++){
+		fputs(gcvt(x[b+8], 16, buf), xfilePtr)  ; 
+		fputs(" ", xfilePtr)  ; 
+		fputs(gcvt(y[b+8], 16, buf), xfilePtr)  ; 
+		fputs(" ", xfilePtr)  ;       
+		fputs(gcvt(z[b+8], 16, buf), xfilePtr)  ; 
+		fputs(" \n", xfilePtr)  ;     
+		
+		fputs(gcvt(vx[b+8], 16, buf), vfilePtr)  ; 
+		fputs(" ", vfilePtr)  ; 
+		fputs(gcvt(vy[b+8], 16, buf), vfilePtr)  ; 
+		fputs(" ", vfilePtr)  ;       
+		fputs(gcvt(vz[b+8], 16, buf), vfilePtr)  ; 
+		fputs(" \n", vfilePtr)  ;  	
+		}	         
+      #endif 	
 
 	//
 	rate /= (f64)(steps - warmup);

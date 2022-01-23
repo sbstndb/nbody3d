@@ -121,9 +121,11 @@ void move_particles(float *x, float *y, float *z, float *vx, float *vy, float *v
 int main(int argc, char **argv)
 {
 	//
-	const u64 n = (argc > 1) ? atoll(argv[1]) : 16384;
-	const u64 steps= 10;
-	const f32 dt = 0.01;
+  const u64 n = (argc > 1) ? atoll(argv[1]) : 16384;
+  const u64 warmup = (argc > 2) ? atoll(argv[2]) : 3;   
+  const u64 steps = (argc > 3) ? atoll(argv[3]) : 10;  
+  //const u64 steps= 10;
+  const f32 dt = 0.01;
 
 	// declaration of file for saving 1st coordinates during time
 	#ifdef SAVE
@@ -140,8 +142,6 @@ int main(int argc, char **argv)
 	//
 	f64 rate = 0.0, drate = 0.0;
 
-	//Steps to skip for warm up
-	const u64 warmup = 3;
 
 	//
 	//particle_t *p = malloc(sizeof(particle_t) * n);
@@ -214,7 +214,23 @@ int main(int argc, char **argv)
 
 	
 	}
-
+      #ifdef SAVE
+	      for (unsigned long long b = 0 ; b < n ; b++){
+		fputs(gcvt(x[b], 16, buf), xfilePtr)  ; 
+		fputs(" ", xfilePtr)  ; 
+		fputs(gcvt(y[b], 16, buf), xfilePtr)  ; 
+		fputs(" ", xfilePtr)  ;       
+		fputs(gcvt(z[b], 16, buf), xfilePtr)  ; 
+		fputs(" \n", xfilePtr)  ;     
+		
+		fputs(gcvt(vx[b], 16, buf), vfilePtr)  ; 
+		fputs(" ", vfilePtr)  ; 
+		fputs(gcvt(vy[b], 16, buf), vfilePtr)  ; 
+		fputs(" ", vfilePtr)  ;       
+		fputs(gcvt(vz[b], 16, buf), vfilePtr)  ; 
+		fputs(" \n", vfilePtr)  ;  	
+		}	         
+      #endif    
 	//
 	rate /= (f64)(steps - warmup);
 	drate = sqrt(drate / (f64)(steps - warmup) - (rate * rate));
