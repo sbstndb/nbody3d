@@ -166,22 +166,6 @@ int main(int argc, char **argv)
 	for (u64 i = 0; i < steps; i++)
 	{
 	
-	#ifdef SAVE
-		// write 1st trajectory particle for comparison 
-		fputs(gcvt(x[0], 16, buf), xfilePtr)  ; 
-		fputs(" ", xfilePtr)  ; 
-		fputs(gcvt(y[0], 16, buf), xfilePtr)  ; 
-		fputs(" ", xfilePtr)  ;       
-		fputs(gcvt(z[0], 16, buf), xfilePtr)  ; 
-		fputs(" \n", xfilePtr)  ;     
-		
-		fputs(gcvt(vx[0], 16, buf), vfilePtr)  ; 
-		fputs(" ", vfilePtr)  ; 
-		fputs(gcvt(vy[0], 16, buf), vfilePtr)  ; 
-		fputs(" ", vfilePtr)  ;       
-		fputs(gcvt(vz[0], 16, buf), vfilePtr)  ; 
-		fputs(" \n", vfilePtr)  ;  		 
-	#endif	
 	
 	//Measure
 	const f64 start = omp_get_wtime();

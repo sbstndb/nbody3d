@@ -37,4 +37,20 @@ clean:
 	
 run:
 	./aos1.g && ./aos2.g &&  ./soa1.g && ./soa2.g && ./soa3.g && ./soa4.g && ./soa5.g
+	
+	
+run_one_512:
+	 ./aos1.g 16000 0 1 && ./aos2.g 16000 0 1  &&  ./soa1.g 16000 0 1  && ./soa2.g 16000 0 1  && ./soa3.g 16000 0 1  && ./soa4.g 16000 0 1  && ./soa5.g 16000 0 1   && python3 error.py >> result_precision_one.txt && cat result_precision_one.txt
+	
+run_one_2:
+	./aos1.g 16000 0 1 && ./aos2.g 16000 0 1  &&  ./soa1.g 16000 0 1  && ./soa2.g 16000 0 1  && ./soa3.g 16000 0 1  && ./soa4.g 16000 0 1   && python3 error.py >> result_precision_one.txt && cat result_precision_one.txt	
+	
+
+
+run_init_512:
+	./aos1.g 16000 0 0 && ./aos2.g 16000 0 0  &&  ./soa1.g 16000 0 0  && ./soa2.g 16000 0 0  && ./soa3.g 16000 0 0  && ./soa4.g 16000 0 0  && ./soa5.g 16000 0 0  && python3 error.py >> result_precision_init.txt && cat result_precision_init.txt
+
+run_init_2:
+	./aos1.g 16000 0 0 && ./aos2.g 16000 0 0  &&  ./soa1.g 16000 0 0  && ./soa2.g 16000 0 0  && ./soa3.g 16000 0 0  && ./soa4.g 16000 0 0  && python3 error.py >> result_precision_init.txt && cat result_precision_init.txt
+
 
