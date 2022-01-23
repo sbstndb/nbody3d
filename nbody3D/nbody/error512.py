@@ -1,5 +1,5 @@
 import numpy as np
-
+import pylab as pl
 
 
 def save_position(name):
@@ -23,7 +23,16 @@ def difference_by_particule(x1, x2):
 	return diff
 		
 
-	
+def plot_error(dtotal, ntotal):
+	for i in range(len(ntotal)):
+		pl.plot(dtotal[:,i], linewidth = 0.1, label='ntotal[i]')
+	pl.legend()
+	pl.grid()
+	pl.yscale("log")
+	#pl.show()
+	print("\nPlease open results/error.png\n")
+	pl.savefig("results/error.png")
+			
 	
 	
 xaos1 = save_position("aos1x.txt")
@@ -62,4 +71,6 @@ for i in range(len(ntotal)):
 	print("Erreur maximale : " + str(np.max(dtotal[:,i])))
 
 
+
+plot_error(dtotal, ntotal)
 	

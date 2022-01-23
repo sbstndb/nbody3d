@@ -1,9 +1,9 @@
 import numpy as np
-
+import pylab as pl
 
 
 def save_position(name):
-	faos = open(name, "r")
+	faos = open("results/" + name, "r")
 	daos = faos.readlines()
 	xaos = np.zeros((len(daos), 3), dtype="float64")
 	for i in range(len(daos)):
@@ -21,9 +21,20 @@ def difference_by_particule(x1, x2):
 		d  = abs(x1[i, 0] - x2[i, 0]) + abs(x1[i, 1] - x2[i, 1]) + abs(x1[i, 2] - x2[i, 2])
 		diff[i] = d 
 	return diff
-		
-
 	
+	
+def plot_error(dtotal, ntotal):
+	for i in range(len(ntotal)):
+		pl.plot(dtotal[:,i], linewidth = 0.1, label='ntotal[i]')
+	pl.legend()
+	pl.grid()
+	pl.yscale("log")
+	#pl.show()
+	print("\nPlease open results/error.png\n")
+	pl.savefig("results/error.png")
+		
+	
+		
 	
 	
 xaos1 = save_position("aos1x.txt")
@@ -59,4 +70,7 @@ for i in range(len(ntotal)):
 	print("Erreur maximale : " + str(np.max(dtotal[:,i])))
 
 
+
+
+plot_error(dtotal, ntotal)
 	
