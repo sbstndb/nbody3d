@@ -229,9 +229,9 @@ int main(int argc, char **argv)
 	// declaration of file for saving 1st coordinates during time
 	#ifdef SAVE
 		FILE *xfilePtr = NULL ; 
-		xfilePtr = fopen("results/nbodyx5.txt", "w");
+		xfilePtr = fopen("results/soa5x.txt", "w");
 		FILE *vfilePtr = NULL ; 
-		vfilePtr = fopen("results/nbodyv5.txt", "w");		
+		vfilePtr = fopen("results/soa5v.txt", "w");		
 		if (xfilePtr == NULL || vfilePtr == NULL){
 		printf("Issue in writing in file\n") ; 
 		}
